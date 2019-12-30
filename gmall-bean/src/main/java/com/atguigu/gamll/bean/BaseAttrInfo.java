@@ -25,4 +25,5 @@ public class BaseAttrInfo implements Serializable {
         private List<BaseAttrValue> attrValueList;
 
 
+
 }

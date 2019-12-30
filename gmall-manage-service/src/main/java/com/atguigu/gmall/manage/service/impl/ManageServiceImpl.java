@@ -2,7 +2,10 @@ package com.atguigu.gmall.manage.service.impl;
 
 
 import com.alibaba.dubbo.config.annotation.Service;
+
+
 import com.atguigu.gamll.bean.*;
+
 import com.atguigu.gmall.manage.mapper.*;
 import com.atguigu.gmall.service.ManageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,16 @@ import java.util.List;
  */
 @Service
 public class ManageServiceImpl implements ManageService {
+    @Autowired
+    private SkuSaleAttrValueMapper skuSaleAttrValueMapper;
+    @Autowired
+    private SkuAttrValueMapper skuAttrValueMapper;
+
+    @Autowired
+    private SkuInfoMapper skuInfoMapper;
+    @Autowired
+    private SkuImageMapper skuImageMapper;
+
 
     @Autowired
     SpuSaleAttrValueMapper spuSaleAttrValueMapper;
@@ -74,9 +87,10 @@ public class ManageServiceImpl implements ManageService {
 
     @Override
     public List<BaseAttrInfo> getAttrList(String catalog3Id) {
-        BaseAttrInfo baseAttrInfo = new BaseAttrInfo();
-        baseAttrInfo.setCatalog3Id(catalog3Id);
-        List<BaseAttrInfo> baseAttrInfoList = baseAttrInfoMapper.select(baseAttrInfo);
+//        BaseAttrInfo baseAttrInfo = new BaseAttrInfo();
+//        baseAttrInfo.setCatalog3Id(catalog3Id);
+//        List<BaseAttrInfo> baseAttrInfoList = baseAttrInfoMapper.select(baseAttrInfo);
+        List<BaseAttrInfo> baseAttrInfoList = baseAttrInfoMapper.selectBaseAttrInfoListByCatalog3Id(catalog3Id);
         return baseAttrInfoList;
     }
 
@@ -137,8 +151,8 @@ public class ManageServiceImpl implements ManageService {
     }
 
     @Override
+    @Transactional
     public void saveSpuInfo(SpuInfo spuInfo) {
-
 
         // 什么情况下是保存，什么情况下是更新 spuInfo
         if (spuInfo.getId()==null || spuInfo.getId().length()==0){
@@ -195,6 +209,85 @@ public class ManageServiceImpl implements ManageService {
                     }
                 }
 
+            }
+        }
+    }
+
+    @Override
+    public List<SpuImage> getSpuImageList(String spuId) {
+        SpuImage spuImage = new SpuImage();
+        spuImage.setSpuId(spuId);
+        return spuImageMapper.select(spuImage);
+
+    }
+
+    @Override
+    public List<SpuSaleAttr> getSpuSaleAttrList(String spuId) {
+        return spuSaleAttrMapper.selectSpuSaleAttrList(spuId);
+
+    }
+
+    @Override
+    @Transactional
+    public void saveSkuInfo(SkuInfo skuInfo) {
+        // sku_info
+        if (skuInfo.getId()==null || skuInfo.getId().length()==0){
+            // 设置id 为自增
+            skuInfo.setId(null);
+            skuInfoMapper.insertSelective(skuInfo);
+        }else {
+            skuInfoMapper.updateByPrimaryKeySelective(skuInfo);
+        }
+
+        //        sku_img,
+        SkuImage skuImage = new SkuImage();
+        skuImage.setSkuId(skuInfo.getId());
+        skuImageMapper.delete(skuImage);
+
+        // insert
+        List<SkuImage> skuImageList = skuInfo.getSkuImageList();
+        if (skuImageList!=null && skuImageList.size()>0){
+            for (SkuImage image : skuImageList) {
+                /* "" 区别 null*/
+                if (image.getId()!=null && image.getId().length()==0){
+                    image.setId(null);
+                }
+                // skuId 必须赋值
+                image.setSkuId(skuInfo.getId());
+                skuImageMapper.insertSelective(image);
+            }
+        }
+//        sku_attr_value,
+        SkuAttrValue skuAttrValue = new SkuAttrValue();
+        skuAttrValue.setSkuId(skuInfo.getId());
+        skuAttrValueMapper.delete(skuAttrValue);
+
+        // 插入数据
+        List<SkuAttrValue> skuAttrValueList = skuInfo.getSkuAttrValueList();
+        if (skuAttrValueList!=null && skuAttrValueList.size()>0){
+            for (SkuAttrValue attrValue : skuAttrValueList) {
+                if (attrValue.getId()!=null && attrValue.getId().length()==0){
+                    attrValue.setId(null);
+                }
+                // skuId
+                attrValue.setSkuId(skuInfo.getId());
+                skuAttrValueMapper.insertSelective(attrValue);
+            }
+        }
+//        sku_sale_attr_value,
+        SkuSaleAttrValue skuSaleAttrValue = new SkuSaleAttrValue();
+        skuSaleAttrValue.setSkuId(skuInfo.getId());
+        skuSaleAttrValueMapper.delete(skuSaleAttrValue);
+//      插入数据
+        List<SkuSaleAttrValue> skuSaleAttrValueList = skuInfo.getSkuSaleAttrValueList();
+        if (skuSaleAttrValueList!=null && skuSaleAttrValueList.size()>0){
+            for (SkuSaleAttrValue saleAttrValue : skuSaleAttrValueList) {
+                if (saleAttrValue.getId()!=null && saleAttrValue.getId().length()==0){
+                    saleAttrValue.setId(null);
+                }
+                // skuId
+                saleAttrValue.setSkuId(skuInfo.getId());
+                skuSaleAttrValueMapper.insertSelective(saleAttrValue);
             }
         }
     }

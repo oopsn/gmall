@@ -1,0 +1,30 @@
+package com.atguigu.gamll.bean;
+
+import lombok.Data;
+
+import javax.persistence.Column;
+import javax.persistence.Id;
+import java.io.Serializable;
+
+/**
+ * @Auther: LIJINHU
+ * @Date: 2019/12/28 16:55
+ * @Description:
+ */
+@Data
+public class SkuImage implements Serializable {
+
+    @Id
+    @Column
+    String id;
+    @Column
+    String skuId;
+    @Column
+    String imgName;
+    @Column
+    String imgUrl;
+    @Column
+    String spuImgId;
+    @Column
+    String isDefault;
+}
